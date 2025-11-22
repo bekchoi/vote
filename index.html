@@ -29,12 +29,6 @@
       margin: 0 0 12px;
       text-align: center;
     }
-    p.description {
-      margin: 0 0 20px;
-      font-size: 0.9rem;
-      color: #6b7280;
-      text-align: center;
-    }
     .field { margin-bottom: 12px; }
     .field label {
       display: block;
@@ -97,19 +91,30 @@
   </div>
 
 <script>
+  // ★ Bek님 Apps Script 웹앱 URL
   const SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
 
+  // --- 백엔드 상태/저장 호출 ---
+
   async function fetchStatus() {
-    const res = await fetch(SCRIPT_URL + "?mode=status", { method: "GET", cache: "no-store" });
-    return res.json(); // { ok:true, status:"start" }
+    const res = await fetch(SCRIPT_URL + "?mode=status", {
+      method: "GET",
+      cache: "no-store"
+    });
+    return res.json();               // { ok:true, status:"start" }
   }
 
   async function sendVoteToServer(name, attend) {
     const params = new URLSearchParams({ name, attend });
-    const res = await fetch(SCRIPT_URL, { method: "POST", body: params });
-    return res.json();
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: params                     // application/x-www-form-urlencoded
+    });
+    return res.json();                // { ok:true } 또는 { ok:false, error:"CLOSED" }
   }
+
+  // --- 화면 렌더링 ---
 
   function renderClosed() {
     document.getElementById("app").innerHTML =
@@ -140,6 +145,8 @@
     document.getElementById("vote-form").addEventListener("submit", handleSubmit);
   }
 
+  // --- 이벤트 핸들러 ---
+
   function getAttend() {
     const r = document.querySelector("input[name='attend']:checked");
     return r ? r.value : null;
@@ -148,11 +155,11 @@
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const name = document.getElementById("username").value.trim();
+    const name   = document.getElementById("username").value.trim();
     const attend = getAttend();
     const status = document.getElementById("status-text");
 
-    if (!name) return alert("이름을 입력해 주세요.");
+    if (!name)   return alert("이름을 입력해 주세요.");
     if (!attend) return alert("참석 여부를 선택해 주세요.");
 
     status.textContent = "투표 전송 중…";
@@ -164,17 +171,34 @@
       return;
     }
 
+    if (!result.ok) {
+      status.textContent = "서버 오류가 발생했습니다. 다시 시도해 주세요.";
+      return;
+    }
+
     status.innerHTML =
       `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다.<br>마감 전까지 수정 가능합니다.`;
   }
 
+  // --- 최초 로딩: 상태 확인 후 화면 결정 ---
+
   async function init() {
+    // 처음에는 안내 한 줄만 보여줌
+    renderClosed();
+
     try {
-      const data = await fetchStatus();
-      if (data.ok && data.status === "start") renderForm();
-      else renderClosed();
+      const data = await fetchStatus();      // { ok, status }
+
+      if (data.ok && data.status === "start") {
+        // 투표 열려 있으면 폼 화면으로 교체
+        renderForm();
+      } else {
+        // closed 등 → 그냥 마감 화면 유지
+        renderClosed();
+      }
     } catch (err) {
-      renderClosed(); // 서버 오류도 마감 표시로 처리
+      // 에러도 마감 화면으로 처리
+      renderClosed();
     }
   }
 
