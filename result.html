@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>골프 참석 결과</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px 20px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    }
+    h1 {
+      font-size: 1.3rem;
+      margin: 0 0 12px;
+      text-align: center;
+    }
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .col {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-height: 120px;
+    }
+    .col h2 {
+      font-size: 0.95rem;
+      margin: 0 0 6px;
+      font-weight: 600;
+    }
+    .count {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    li {
+      padding: 2px 0;
+    }
+    .empty {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .buttons {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #4f46e5;
+      color: white;
+      box-shadow: 0 8px 16px rgba(79,70,229,0.25);
+    }
+    .btn-secondary {
+      background: #f9fafb;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+    .status {
+      font-size: 0.85rem;
+      margin-top: 10px;
+      text-align: center;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>골프 참석 결과</h1>
+
+    <div id="result-area">
+      <div class="status">결과를 불러오는 중입니다…</div>
+    </div>
+
+    <div class="buttons">
+      <!-- 다시 투표 사이트로 -->
+      <button class="btn btn-primary" id="back-vote-btn">
+        투표하러 돌아가기
+      </button>
+
+      <!-- 브라우저 뒤로가기(또는 탭 닫기) -->
+      <button class="btn btn-secondary" id="close-btn">
+        이전 페이지로 돌아가기
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL =
+      "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
+
+    async function fetchResults() {
+      const res = await fetch(SCRIPT_URL + "?mode=results", {
+        method: "GET",
+        cache: "no-store"
+      });
+      return res.json();
+    }
+
+    function renderResults(data) {
+      if (!data.ok) {
+        document.getElementById("result-area").innerHTML =
+          '<div class="status">결과를 불러오지 못했습니다.</div>';
+        return;
+      }
+
+      const attends = data.attends || [];
+      const absents = data.absents || [];
+
+      const attendItems = attends.map(n => `<li>${n}</li>`).join("");
+      const absentItems = absents.map(n => `<li>${n}</li>`).join("");
+
+      document.getElementById("result-area").innerHTML = `
+        <div class="columns">
+          <div class="col">
+            <h2>참석자</h2>
+            <div class="count">총 ${attends.length}명</div>
+            ${
+              attends.length
+                ? `<ul>${attendItems}</ul>`
+                : '<div class="empty">아직 참석 투표가 없습니다.</div>'
+            }
+          </div>
+          <div class="col">
+            <h2>불참자</h2>
+            <div class="count">총 ${absents.length}명</div>
+            ${
+              absents.length
+                ? `<ul>${absentItems}</ul>`
+                : '<div class="empty">아직 불참 투표가 없습니다.</div>'
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    async function init() {
+      try {
+        const data = await fetchResults();
+        renderResults(data);
+      } catch (e) {
+        document.getElementById("result-area").innerHTML =
+          '<div class="status">결과를 불러오지 못했습니다.</div>';
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      init();
+
+      // https://bekchoi.github.io/vote/ 로 돌아가기
+      document.getElementById("back-vote-btn").addEventListener("click", () => {
+        window.location.href = "./";
+      });
+
+      // 브라우저 이전 페이지로 이동
+      document.getElementById("close-btn").addEventListener("click", () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          // 히스토리가 없는 경우 그냥 투표 페이지로 이동
+          window.location.href = "./";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
