@@ -130,14 +130,12 @@
 <body>
   <div class="container">
     <h1>골프 참석여부 투표</h1>
+    <p class="description" id="desc-text">
+      이름을 입력하시고 참석 / 불참을 선택한 뒤<br />
+      <strong>투표하기</strong> 버튼을 눌러 주세요.
+    </p>
 
-    <!-- 투표 폼 영역 -->
     <form id="vote-form">
-      <p class="description">
-        이름을 입력하시고 참석 / 불참을 선택한 뒤<br />
-        <strong>투표하기</strong> 버튼을 눌러 주세요.
-      </p>
-
       <div class="field">
         <label for="username">이름</label>
         <input type="text" id="username" placeholder="예: 박세리" required />
@@ -158,12 +156,10 @@
       </div>
 
       <button type="submit" id="submit-btn">투표하기</button>
+      <div class="status" id="status-text">
+        아직 투표 전입니다.
+      </div>
     </form>
-
-    <!-- 상태 메시지 영역 (폼과 별도) -->
-    <div class="status" id="status-text">
-      아직 투표 전입니다.
-    </div>
   </div>
 
   <script>
@@ -171,8 +167,8 @@
     const VOTE_API_URL =
       'https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec';
 
-    // 상태 조회용 URL (GET ?status=1)
-    const STATUS_API_URL = VOTE_API_URL + '?status=1';
+    // 현재 상태: 'start' | 'closed' | 'unknown'
+    let STATUS = 'unknown';
 
     function getSelectedAttend() {
       const radios = document.querySelectorAll('input[name="attend"]');
@@ -182,39 +178,30 @@
       return null;
     }
 
-    // 폼을 숨기고 "마감/시작 전" 메시지 보여주기
+    // 폼을 숨기고 "마감/시작전" 안내만 보여주는 함수
     function showClosedUI(message) {
       const form = document.getElementById('vote-form');
+      const desc = document.getElementById('desc-text');
       const status = document.getElementById('status-text');
 
       form.style.display = 'none';
-      status.innerHTML =
-        message || '투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.';
+      desc.innerHTML = '투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.';
+      status.textContent = message || '';
     }
 
-    // 서버에 상태만 물어보기
-    async function checkStatusOnLoad() {
+    // 서버에서 현재 상태만 가져오기 (?mode=status)
+    async function fetchStatusFromServer() {
       try {
-        const res = await fetch(STATUS_API_URL, { method: 'GET' });
-        const json = await res.json();
-        if (!json.ok) return;
-
-        if (json.status !== 'start') {
-          // start가 아니면 폼 숨기고 안내만
-          showClosedUI('투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.');
-        } else {
-          // 열려 있으면 기본 문구
-          document.getElementById('status-text').textContent = '아직 투표 전입니다.';
-        }
+        const res = await fetch(VOTE_API_URL + '?mode=status');
+        const data = await res.json();
+        return data.status || 'closed';
       } catch (e) {
-        // 상태 조회 실패시에는 폼은 그대로 두고, 상태 문구만 바꿔 둠
-        console.error(e);
-        document.getElementById('status-text').textContent =
-          '서버 상태를 확인하지 못했습니다. 투표 시도 시 다시 확인됩니다.';
+        console.error('상태 조회 실패', e);
+        return 'unknown';
       }
     }
 
-    // 투표 내용 서버로 전송
+    // 투표 데이터 전송 (POST)
     async function sendVoteToServer(name, attend) {
       const params = new URLSearchParams();
       params.append('name', name);
@@ -225,19 +212,24 @@
         body: params
       });
 
-      return res.json(); // { ok: true, status: "start" } 또는 { ok: false, error: "CLOSED", status: ... }
+      return res.json(); // { ok: true } 또는 { ok:false, error:'CLOSED', ... }
     }
 
     async function handleSubmit(event) {
       event.preventDefault();
 
-      const form = document.getElementById('vote-form');
-      const nameInput = document.getElementById('username');
-      const button = document.getElementById('submit-btn');
-      const status = document.getElementById('status-text');
+      // 이미 마감/시작전으로 판정된 경우
+      if (STATUS !== 'start') {
+        alert('현재는 투표가 불가능합니다.');
+        showClosedUI();
+        return;
+      }
 
+      const nameInput = document.getElementById('username');
       const name = nameInput.value.trim();
       const attend = getSelectedAttend();
+      const button = document.getElementById('submit-btn');
+      const status = document.getElementById('status-text');
 
       if (!name) {
         alert('이름을 입력해 주세요.');
@@ -255,20 +247,19 @@
 
         const result = await sendVoteToServer(name, attend);
 
-        // 상태가 이미 마감/시작 전인 경우
         if (!result.ok && result.error === 'CLOSED') {
-          showClosedUI('투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.');
+          // 서버에서 막힌 경우 → 즉시 마감 화면으로 전환
+          STATUS = 'closed';
+          showClosedUI();
+          alert('투표가 이미 마감되었거나 아직 시작되지 않았습니다.');
           return;
         }
 
-        if (!result.ok) {
-          throw new Error(result.error || 'SERVER_ERROR');
-        }
-
-        // 정상 저장된 경우
-        status.innerHTML =
+        // 정상 저장
+        let msg =
           `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다.<br />` +
           '마감 전까지는 수정할 수 있습니다.';
+        status.innerHTML = msg;
 
       } catch (e) {
         console.error(e);
@@ -279,9 +270,18 @@
       }
     }
 
-    // 페이지 로드시 상태 먼저 확인
-    window.addEventListener('DOMContentLoaded', () => {
-      checkStatusOnLoad();
+    // 페이지 처음 로딩 시: 상태를 먼저 확인해서 폼을 보여줄지 말지 결정
+    window.addEventListener('DOMContentLoaded', async function () {
+      const statusDiv = document.getElementById('status-text');
+
+      STATUS = await fetchStatusFromServer();
+
+      if (STATUS !== 'start') {
+        showClosedUI();
+      } else {
+        statusDiv.textContent = '아직 투표 전입니다.';
+      }
+
       document
         .getElementById('vote-form')
         .addEventListener('submit', handleSubmit);
