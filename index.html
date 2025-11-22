@@ -56,9 +56,17 @@
       cursor: pointer;
     }
     .option-row input[type="radio"] { accent-color: #4f46e5; }
-    button[type="submit"] {
-      width: 100%;
+
+    /* 버튼을 가로로 나란히 놓는 영역 */
+    .button-row {
+      display: flex;
+      gap: 12px;
       margin-top: 14px;
+    }
+
+    /* 보라색 "투표하기" 버튼 */
+    .primary-btn {
+      flex: 1;
       padding: 10px 12px;
       border-radius: 999px;
       border: none;
@@ -69,24 +77,35 @@
       color: white;
       box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
     }
+
+    /* 회색 "현재 결과 보기" 기본 스타일 (단독일 때 사용) */
+    button.secondary-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #374151;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* 가로 배치 안에 있을 때는 폭/마진을 flex용으로 덮어쓰기 */
+    .button-row .secondary-btn {
+      flex: 1;
+      width: auto;
+      margin-top: 0;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+
     .status {
       font-size: 0.85rem;
       margin-top: 14px;
       text-align: center;
       color: #6b7280;
     }
-    button.secondary-btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  color: #374151;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
   </style>
 </head>
 
@@ -122,48 +141,46 @@
   }
 
   function renderClosed() {
-  document.getElementById("app").innerHTML = `
-    <div class="status" style="margin-bottom:12px;">
-      투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.
-    </div>
-    <button type="button" class="secondary-btn" onclick="window.location.href='result.html'">
-      현재 결과 보기
-    </button>
-  `;
-}
-
-
-  function renderForm() {
-  document.getElementById("app").innerHTML = `
-    <form id="vote-form">
-      <div class="field">
-        <label>이름</label>
-        <input type="text" id="username" name="name" placeholder="예: 박세리" required />
+    document.getElementById("app").innerHTML = `
+      <div class="status" style="margin-bottom:12px;">
+        투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.
       </div>
-
-      <div class="field">
-        <label>참석 여부</label>
-        <div class="option-row">
-          <label><input type="radio" name="attend" value="참석"> 참석</label>
-          <label><input type="radio" name="attend" value="불참"> 불참</label>
-        </div>
-      </div>
-
-      <button type="submit">투표하기</button>
-      <button type="button" class="secondary-btn" id="result-btn">
+      <button type="button" class="secondary-btn" onclick="window.location.href='result.html'">
         현재 결과 보기
       </button>
-      <div class="status" id="status-text">아직 투표 전입니다.</div>
-    </form>
-  `;
+    `;
+  }
 
-  document.getElementById("vote-form").addEventListener("submit", handleSubmit);
+  function renderForm() {
+    document.getElementById("app").innerHTML = `
+      <form id="vote-form">
+        <div class="field">
+          <label>이름</label>
+          <input type="text" id="username" name="name" placeholder="예: 박세리" required />
+        </div>
 
-  // 결과 보기 버튼 → result.html 로 이동
-  document.getElementById("result-btn").addEventListener("click", () => {
-    window.location.href = "result.html";
-  });
-}
+        <div class="field">
+          <label>참석 여부</label>
+          <div class="option-row">
+            <label><input type="radio" name="attend" value="참석"> 참석</label>
+            <label><input type="radio" name="attend" value="불참"> 불참</label>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button type="submit" class="primary-btn">투표하기</button>
+          <button type="button" class="secondary-btn" id="result-btn">현재 결과 보기</button>
+        </div>
+
+        <div class="status" id="status-text">아직 투표 전입니다.</div>
+      </form>
+    `;
+
+    document.getElementById("vote-form").addEventListener("submit", handleSubmit);
+    document.getElementById("result-btn").addEventListener("click", () => {
+      window.location.href = "result.html";
+    });
+  }
 
   function getAttend() {
     const r = document.querySelector("input[name='attend']:checked");
@@ -211,6 +228,3 @@
 </script>
 </body>
 </html>
-
-
-
