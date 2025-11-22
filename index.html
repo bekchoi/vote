@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>골프 참석 투표</title>
+  <title>모임 참석 투표</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * {
@@ -125,28 +125,20 @@
     .status strong {
       color: #4f46e5;
     }
-
-    .footer-text {
-      margin-top: 14px;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      text-align: center;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>골프 참석 여부 투표</h1>
+    <h1>모임 참석 여부 투표</h1>
     <p class="description">
       이름을 입력하시고 참석 / 불참을 선택한 뒤<br />
-      <strong>투표하기</strong> 버튼을 눌러 주세요.<br />
-      (같은 이름으로 다시 제출하면 이전 선택이 덮어쓰기 됩니다.)
+      <strong>투표하기</strong> 버튼을 눌러 주세요.
     </p>
 
     <form id="vote-form">
       <div class="field">
         <label for="username">이름</label>
-        <input type="text" id="username" placeholder="예: 박세리" required />
+        <input type="text" id="username" placeholder="예: 최백" required />
       </div>
 
       <div class="field">
@@ -168,17 +160,16 @@
         아직 투표 전입니다.
       </div>
     </form>
-
-    <div class="footer-text">
-      실제 투표 기록은 구글 스프레드시트에 저장됩니다.<br />
-      (같은 이름은 항상 한 줄만 유지됩니다.)
-    </div>
   </div>
 
   <script>
     // ★ 본인 Apps Script 웹앱 URL
     const VOTE_API_URL =
       'https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec';
+
+    // 리셋 전/후 상태 (false = 수정 가능, true = 확정)
+    // 필요할 때만 true 로 바꾸고 GitHub에 다시 업로드하시면 됩니다.
+    const IS_FINAL = false;
 
     function getSelectedAttend() {
       const radios = document.querySelectorAll('input[name="attend"]');
@@ -227,9 +218,18 @@
 
         await sendVoteToServer(name, attend);
 
-        status.innerHTML =
-          `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다. ` +
-          '필요하면 다시 수정할 수 있습니다.';
+        // 공통 앞부분
+        let msg =
+          `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다. `;
+
+        // 리셋 전/후에 따라 뒷부분만 변경
+        if (IS_FINAL) {
+          msg += '참석 여부가 확정되었습니다.';
+        } else {
+          msg += '필요하면 다시 수정할 수 있습니다.';
+        }
+
+        status.innerHTML = msg;
 
       } catch (e) {
         console.error(e);
@@ -246,6 +246,3 @@
   </script>
 </body>
 </html>
-
-
-
