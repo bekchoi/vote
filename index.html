@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>골프 참석 투표</title>
+  <title>Golf Attendance Vote</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -26,8 +26,13 @@
     }
     h1 {
       font-size: 1.3rem;
-      margin: 0 0 12px;
-      text-align: center;
+      margin: 0 0 6px;
+      text-align: left;
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 16px;
     }
     .field { margin-bottom: 12px; }
     .field label {
@@ -45,7 +50,8 @@
     }
     .option-row {
       display: flex;
-      gap: 16px;
+      flex-direction: column;
+      gap: 8px;
       margin-top: 4px;
       font-size: 0.9rem;
     }
@@ -54,17 +60,19 @@
       align-items: center;
       gap: 6px;
       cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
     }
     .option-row input[type="radio"] { accent-color: #4f46e5; }
 
-    /* 버튼을 가로로 나란히 놓는 영역 */
     .button-row {
       display: flex;
       gap: 12px;
       margin-top: 14px;
     }
 
-    /* 보라색 "투표하기" 버튼 */
     .primary-btn {
       flex: 1;
       padding: 10px 12px;
@@ -78,7 +86,6 @@
       box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
     }
 
-    /* 회색 "현재 결과 보기" 기본 스타일 (단독일 때 사용) */
     button.secondary-btn {
       width: 100%;
       margin-top: 8px;
@@ -91,7 +98,6 @@
       cursor: pointer;
     }
 
-    /* 가로 배치 안에 있을 때는 폭/마진을 flex용으로 덮어쓰기 */
     .button-row .secondary-btn {
       flex: 1;
       width: auto;
@@ -111,11 +117,13 @@
 
 <body>
   <div class="container">
-    <h1>골프 참석여부 투표</h1>
+    <!-- 제목은 JS에서 Config 시트를 읽어서 변경 -->
+    <h1 id="title">Golf Attendance Vote</h1>
+    <!-- 필요하다면 나중에 "by Admin · ..." 같은 서브타이틀도 여기 사용 가능 -->
+    <div class="subtitle" id="subtitle">Please make a choice below.</div>
 
-    <!-- JS가 이 위치에 화면을 렌더링 -->
     <div id="app">
-      <div class="status">투표가 준비중입니다.</div>
+      <div class="status">Loading poll...</div>
     </div>
   </div>
 
@@ -123,12 +131,13 @@
   const SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
 
+  // Config(status, place, time) 조회
   async function fetchStatus() {
     const res = await fetch(SCRIPT_URL + "?mode=status", {
       method: "GET",
       cache: "no-store"
     });
-    return res.json(); // { ok:true, status:"start" }
+    return res.json(); // { ok:true, status:"start", place:"...", time:"..." }
   }
 
   async function sendVoteToServer(name, attend) {
@@ -140,13 +149,21 @@
     return res.json();
   }
 
+  // time/place로 제목 문자열 만들기
+  function buildTitle(time, place) {
+    if (time && place) return `${time} - ${place}`;
+    if (time) return time;
+    if (place) return place;
+    return "Golf Attendance Vote";
+  }
+
   function renderClosed() {
     document.getElementById("app").innerHTML = `
       <div class="status" style="margin-bottom:12px;">
-        투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.
+        This poll is currently <strong>closed</strong> or has not started yet.
       </div>
       <button type="button" class="secondary-btn" onclick="window.location.href='result.html'">
-        현재 결과 보기
+        View current results
       </button>
     `;
   }
@@ -155,24 +172,30 @@
     document.getElementById("app").innerHTML = `
       <form id="vote-form">
         <div class="field">
-          <label>이름</label>
-          <input type="text" id="username" name="name" placeholder="예: 박세리" required />
-        </div>
-
-        <div class="field">
-          <label>참석 여부</label>
+          <label>Make a choice:</label>
           <div class="option-row">
-            <label><input type="radio" name="attend" value="참석"> 참석</label>
-            <label><input type="radio" name="attend" value="불참"> 불참</label>
+            <label>
+              <input type="radio" name="attend" value="Yes">
+              Yes, I can play in one of the tee times.
+            </label>
+            <label>
+              <input type="radio" name="attend" value="No">
+              No, I will not be able to play.
+            </label>
           </div>
         </div>
 
-        <div class="button-row">
-          <button type="submit" class="primary-btn">투표하기</button>
-          <button type="button" class="secondary-btn" id="result-btn">현재 결과 보기</button>
+        <div class="field">
+          <label>Name (Required)</label>
+          <input type="text" id="username" name="name" placeholder="Enter your name" required />
         </div>
 
-        <div class="status" id="status-text">아직 투표 전입니다.</div>
+        <div class="button-row">
+          <button type="submit" class="primary-btn">Vote</button>
+          <button type="button" class="secondary-btn" id="result-btn">Results</button>
+        </div>
+
+        <div class="status" id="status-text">Please submit your response.</div>
       </form>
     `;
 
@@ -194,10 +217,10 @@
     const attend = getAttend();
     const status = document.getElementById("status-text");
 
-    if (!name)  return alert("이름을 입력해 주세요.");
-    if (!attend) return alert("참석 여부를 선택해 주세요.");
+    if (!name)  return alert("Please enter your name.");
+    if (!attend) return alert("Please select an option.");
 
-    status.textContent = "투표 전송 중…";
+    status.textContent = "Submitting your vote...";
 
     const result = await sendVoteToServer(name, attend);
 
@@ -207,19 +230,23 @@
     }
 
     status.innerHTML =
-      `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다.<br>마감 전까지 수정 가능합니다.`;
+      `<strong>${name}</strong>, your choice (<strong>${attend}</strong>) has been saved.<br>You can change it until the poll is closed.`;
   }
 
   async function init() {
     try {
       const data = await fetchStatus();
+      if (data.ok) {
+        const title = buildTitle(data.time, data.place);
+        document.getElementById("title").textContent = title;
+      }
+
       if (data.ok && data.status === "start") {
         renderForm();
       } else {
         renderClosed();
       }
     } catch (err) {
-      // 서버 오류도 일단 마감 화면으로 처리
       renderClosed();
     }
   }
