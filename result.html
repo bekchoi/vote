@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>골프 참석 결과</title>
+  <title>Golf Attendance Results</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -66,12 +66,11 @@
       margin-top: 4px;
     }
 
-    /* 버튼 하나만 있을 때 */
     .btn {
       width: 100%;
       padding: 10px 12px;
       border-radius: 999px;
-      border: 1px solid #d1d5db; /* 연한 회색 테두리 */
+      border: 1px solid #d1d5db;
       font-weight: normal;
       font-size: 0.95rem;
       cursor: pointer;
@@ -94,15 +93,14 @@
 
 <body>
   <div class="container">
-    <h1>골프 참석 결과</h1>
+    <h1>Golf Attendance Results</h1>
 
     <div id="result-area">
-      <div class="status">결과를 불러오는 중입니다…</div>
+      <div class="status">Loading results...</div>
     </div>
 
-    <!-- 버튼 하나만 -->
     <button class="btn btn-primary" id="back-vote-btn">
-      투표하러 돌아가기
+      Back to Voting
     </button>
   </div>
 
@@ -121,7 +119,7 @@
     function renderResults(data) {
       if (!data.ok) {
         document.getElementById("result-area").innerHTML =
-          '<div class="status">결과를 불러오지 못했습니다.</div>';
+          '<div class="status">Failed to load results.</div>';
         return;
       }
 
@@ -134,21 +132,21 @@
       document.getElementById("result-area").innerHTML = `
         <div class="columns">
           <div class="col">
-            <h2>참석자</h2>
-            <div class="count">총 ${attends.length}명</div>
+            <h2>Attending</h2>
+            <div class="count">Total ${attends.length}</div>
             ${
               attends.length
                 ? `<ul>${attendItems}</ul>`
-                : '<div class="empty">아직 참석 투표가 없습니다.</div>'
+                : '<div class="empty">No attendance yet.</div>'
             }
           </div>
           <div class="col">
-            <h2>불참자</h2>
-            <div class="count">총 ${absents.length}명</div>
+            <h2>Not Attending</h2>
+            <div class="count">Total ${absents.length}</div>
             ${
               absents.length
                 ? `<ul>${absentItems}</ul>`
-                : '<div class="empty">아직 불참 투표가 없습니다.</div>'
+                : '<div class="empty">No responses yet.</div>'
             }
           </div>
         </div>
@@ -161,14 +159,13 @@
         renderResults(data);
       } catch (e) {
         document.getElementById("result-area").innerHTML =
-          '<div class="status">결과를 불러오지 못했습니다.</div>';
+          '<div class="status">Failed to load results.</div>';
       }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       init();
 
-      // 투표 페이지로 돌아가기
       document.getElementById("back-vote-btn").addEventListener("click", () => {
         window.location.href = "./";
       });
