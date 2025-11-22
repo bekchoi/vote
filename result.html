@@ -65,31 +65,24 @@
       color: #9ca3af;
       margin-top: 4px;
     }
-    .buttons {
-      margin-top: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+
+    /* 버튼 하나만 있을 때 */
     .btn {
       width: 100%;
       padding: 10px 12px;
       border-radius: 999px;
       border: none;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       cursor: pointer;
+      margin-top: 18px;
     }
     .btn-primary {
       background: #4f46e5;
       color: white;
       box-shadow: 0 8px 16px rgba(79,70,229,0.25);
     }
-    .btn-secondary {
-      background: #f9fafb;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
+
     .status {
       font-size: 0.85rem;
       margin-top: 10px;
@@ -107,17 +100,10 @@
       <div class="status">결과를 불러오는 중입니다…</div>
     </div>
 
-    <div class="buttons">
-      <!-- 다시 투표 사이트로 -->
-      <button class="btn btn-primary" id="back-vote-btn">
-        투표하러 돌아가기
-      </button>
-
-      <!-- 브라우저 뒤로가기(또는 탭 닫기) -->
-      <button class="btn btn-secondary" id="close-btn">
-        이전 페이지로 돌아가기
-      </button>
-    </div>
+    <!-- 버튼 하나만 -->
+    <button class="btn btn-primary" id="back-vote-btn">
+      투표하러 돌아가기
+    </button>
   </div>
 
   <script>
@@ -182,19 +168,9 @@
     window.addEventListener("DOMContentLoaded", () => {
       init();
 
-      // https://bekchoi.github.io/vote/ 로 돌아가기
+      // 투표 페이지로 돌아가기
       document.getElementById("back-vote-btn").addEventListener("click", () => {
         window.location.href = "./";
-      });
-
-      // 브라우저 이전 페이지로 이동
-      document.getElementById("close-btn").addEventListener("click", () => {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          // 히스토리가 없는 경우 그냥 투표 페이지로 이동
-          window.location.href = "./";
-        }
       });
     });
   </script>
