@@ -264,21 +264,22 @@
             return null;
         }
 
-        // 구글 Apps Script(스프레드시트)로 전송
+        // 구글 Apps Script(스프레드시트)로 전송 (CORS 우회용)
         async function sendVoteToServer(choice) {
-            const res = await fetch(VOTE_API_URL, {
+            // mode: 'no-cors' 를 사용해서 브라우저 CORS 에러를 막습니다.
+            // 응답(JSON)은 읽지 않고, 요청만 보내는 방식입니다.
+            await fetch(VOTE_API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'no-cors',
+                headers: {
+                    // JSON 문자열을 그냥 텍스트로 보냅니다.
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
                 body: JSON.stringify({
                     choice: choice,
-                    userId: ''   // 필요하면 여기에 나중에 별명 등 추가 가능
+                    userId: ''
                 })
             });
-
-            const json = await res.json();
-            if (!json.ok) {
-                throw new Error(json.error || '서버 오류');
-            }
         }
 
         async function handleSubmit(event) {
@@ -322,3 +323,4 @@
     </script>
 </body>
 </html>
+
