@@ -2,80 +2,260 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
-    <title>참석 여부 투표</title>
+    <title>모임 참석 여부 투표</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f4f4f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px 20px 28px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            margin: 0 0 12px;
+            text-align: center;
+        }
+
+        p.description {
+            margin: 0 0 20px;
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 16px;
+        }
+
+        .field-group {
+            margin-bottom: 14px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: #4b5563;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 0.95rem;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 1px #4f46e5;
+        }
+
+        .option-group-title {
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: #4b5563;
+        }
+
+        .option-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background: #f3f4ff;
+        }
+
+        .option input {
+            accent-color: #4f46e5;
+        }
+
+        .option span {
+            font-size: 0.9rem;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s ease;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .status {
+            font-size: 0.85rem;
+            margin-top: 8px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .status strong {
+            color: #4f46e5;
+        }
+
+        .footer-text {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>모임 참석 여부 투표</h1>
+        <p class="description">
+            이름을 적고 <strong>참석 / 불참</strong>을 선택한 뒤<br />
+            아래 버튼을 눌러 주세요.
+        </p>
 
-<h2>모임 참석 여부 투표</h2>
+        <form id="vote-form">
+            <!-- 이름 -->
+            <div class="field-group">
+                <label for="username" class="field-label">이름</label>
+                <input
+                    type="text"
+                    id="username"
+                    class="text-input"
+                    placeholder="예: 최백"
+                    required
+                />
+            </div>
 
-<form id="vote-form">
+            <!-- 참석 여부 -->
+            <div class="field-group">
+                <div class="option-group-title">참석 여부</div>
+                <div class="option-row">
+                    <label class="option">
+                        <input type="radio" name="attend" value="참석" required />
+                        <span>참석</span>
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="attend" value="불참" />
+                        <span>불참</span>
+                    </label>
+                </div>
+            </div>
 
-    <!-- 이름 입력 -->
-    <label>
-        이름: 
-        <input type="text" id="username" required />
-    </label>
-    <br><br>
+            <button type="submit">투표하기</button>
 
-    <!-- 참석 / 불참 체크 -->
-    <label>
-        <input type="radio" name="attend" value="참석" required /> 참석
-    </label>
+            <div class="status" id="status-text">
+                아직 투표 전입니다.
+            </div>
+        </form>
 
-    <label>
-        <input type="radio" name="attend" value="불참" required /> 불참
-    </label>
-
-    <br><br>
-    <button type="submit">투표하기</button>
-
-    <div id="status-text" style="margin-top:10px; color:#444;">
-        아직 투표 전입니다.
+        <div class="footer-text">
+            ※ 같은 이름으로 다시 투표하면 마지막 선택으로 덮어쓰기 됩니다.<br />
+            ※ 최종 결과는 진행자가 구글 스프레드시트에서 확인합니다.
+        </div>
     </div>
 
-</form>
+    <script>
+        // 구글 Apps Script 웹앱 URL 그대로 사용
+        const VOTE_API_URL =
+          "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
 
-<script>
-    const VOTE_API_URL =
-      "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
+        // 서버로 전송 (이름 + 참석/불참)
+        async function sendVote(name, attend) {
+            const params = new URLSearchParams();
+            params.append("name", name);
+            params.append("attend", attend);
 
-    // 참석 / 불참 데이터를 전송
-    async function sendVote(name, attend) {
-        const params = new URLSearchParams();
-        params.append("name", name);
-        params.append("attend", attend);
+            return fetch(VOTE_API_URL, {
+                method: "POST",
+                mode: "no-cors", // CORS 에러 방지, 응답은 안 읽음
+                body: params
+            });
+        }
 
-        return fetch(VOTE_API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: params
+        document.getElementById("vote-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById("username").value.trim();
+            if (!name) {
+                alert("이름을 입력해 주세요.");
+                return;
+            }
+
+            const attendInput = document.querySelector("input[name='attend']:checked");
+            if (!attendInput) {
+                alert("참석 여부를 선택해 주세요.");
+                return;
+            }
+            const attend = attendInput.value;
+
+            const button = document.querySelector("#vote-form button[type='submit']");
+            const status = document.getElementById("status-text");
+
+            try {
+                button.disabled = true;
+                status.textContent = "투표를 전송하는 중입니다...";
+
+                await sendVote(name, attend);
+
+                status.innerHTML = `<strong>${name} 님의 “${attend}”가 저장되었습니다.</strong>`;
+            } catch (e) {
+                console.error(e);
+                status.textContent = "오류가 발생했습니다. 다시 시도해 주세요.";
+            } finally {
+                button.disabled = false;
+            }
         });
-    }
-
-    document.getElementById("vote-form").addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const name = document.getElementById("username").value.trim();
-        if (!name) {
-            alert("이름을 입력해 주세요.");
-            return;
-        }
-
-        const attend = document.querySelector("input[name='attend']:checked").value;
-
-        const status = document.getElementById("status-text");
-        status.textContent = "전송 중입니다...";
-
-        try {
-            await sendVote(name, attend);
-            status.innerHTML = `<b>${attend}이(가) 저장되었습니다.</b>`;
-        } catch (e) {
-            console.error(e);
-            status.textContent = "오류가 발생했습니다. 다시 시도해 주세요.";
-        }
-    });
-</script>
-
+    </script>
 </body>
 </html>
